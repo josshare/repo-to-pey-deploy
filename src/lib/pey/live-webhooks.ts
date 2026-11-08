@@ -17,7 +17,7 @@ export async function verifyKapso(raw: string, signature: string | null, secret:
   const result = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(raw)));
   const supplied = new Uint8Array(signature.match(/.{2}/g)?.map((v) => parseInt(v, 16)) ?? []);
   let diff = result.length ^ supplied.length;
-  for (let i = 0; i < result.length; i++) diff |= result[i] ^ (supplied[i] ?? 0);
+  for (let i = 0; i < result.length; i++) diff |= (result[i] ?? 0) ^ (supplied[i] ?? 0);
   if (diff !== 0) throw new Error("Invalid signature");
 }
 
