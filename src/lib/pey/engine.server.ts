@@ -9,7 +9,11 @@ export type EventType = "message.received" | "bank.account.activated" | "payment
 const SESSION_MS = 12 * 60 * 60_000;
 const LINK_MS = 15 * 60_000;
 
-function ok<T>(res: { data: T; error: { message: string } | null }): T {
+function ok<T>(res: { data: T; error: { message: string } | null }): NonNullable<T> {
+  if (res.error) throw new Error(res.error.message);
+  return res.data as NonNullable<T>;
+}
+function maybe<T>(res: { data: T; error: { message: string } | null }): T | null {
   if (res.error) throw new Error(res.error.message);
   return res.data;
 }
@@ -52,14 +56,14 @@ export async function createRun(db: Db) {
 
 export async function getRun(db: Db, token: string | undefined) {
   if (!token || !/^[A-Za-z0-9_-]{43}$/.test(token)) throw new Error("Inicia una demo para continuar.");
-  const run = ok(await db.from("demo_runs").select().eq("token_hash", await hashToken(token)).maybeSingle());
+  const run = maybe(await db.from("demo_runs").select().eq("token_hash", await hashToken(token)).maybeSingle());
   if (!run || new Date(run.expires_at) < new Date()) throw new Error("Tu sesión demo venció. Inicia una nueva.");
   return run;
 }
 
 // ---------- Estado ----------
 export async function getState(db: Db, runId: string) {
-  const merchant = ok(
+  const merchant = maybe(
     await db
       .from("merchants")
       .select("id, name, account:bank_accounts(id, label, last4, status), charges(id, token, amount_cents, total_cents, concept, kind, status, created_at, attempts:payment_attempts(id, status, amount_cents, created_at, expires_at, payment:payments(amount_cents)))")
@@ -89,7 +93,7 @@ export async function getState(db: Db, runId: string) {
 
 // ---------- Eventos simulados (idempotentes por proveedor + id externo) ----------
 export async function simulated(db: Db, provider: Provider, runId: string, type: EventType, payload: Record<string, unknown>, externalId: string = crypto.randomUUID()) {
-  const existing = ok(await db.from("webhook_events").select().eq("provider", provider).eq("external_id", externalId).maybeSingle());
+  const existing = maybe(await db.from("webhook_events").select().eq("provider", provider).eq("external_id", externalId).maybeSingle());
   if (existing) {
     if (existing.run_id !== runId) throw new Error("Evento no disponible.");
     return { accepted: true, eventId: existing.id, status: existing.status, duplicate: true };
@@ -106,7 +110,7 @@ export async function simulated(db: Db, provider: Provider, runId: string, type:
       const p = payload as { actor: Actor; text: string; messageId: string };
       await receiveMessage(db, runId, p.actor, p.text, p.messageId, key);
     } else if (type === "bank.account.activated") {
-      await activateAccount(db, runId, String(payload.accountId), key);
+      await activateAccount(db, runId, String(payload["accountId"]), key);
     } else {
       await paymentResult(db, runId, payload as unknown as PaymentResult, key);
     }
@@ -121,7 +125,7 @@ export async function simulated(db: Db, provider: Provider, runId: string, type:
 
 // ---------- Conversaciones ----------
 async function receiveMessage(db: Db, runId: string, actor: Actor, text: string, messageId: string, key: string) {
-  const existing = ok(await db.from("messages").select().eq("source_id", messageId).maybeSingle());
+  const existing = maybe(await db.from("messages").select().eq("source_id", messageId).maybeSingle());
   if (existing) {
     if (existing.run_id !== runId || existing.actor !== actor || existing.body !== text) throw new InvalidEvent("Identificador de mensaje reutilizado con otro contenido.");
     return;
@@ -136,7 +140,7 @@ async function receiveMessage(db: Db, runId: string, actor: Actor, text: string,
   }
 
   const conversation = ok(await db.from("conversations").select().eq("run_id", runId).eq("actor", actor).single());
-  const merchant = ok(await db.from("merchants").select("id, name, account:bank_accounts(id, status)").eq("run_id", runId).maybeSingle()) as unknown as
+  const merchant = maybe(await db.from("merchants").select("id, name, account:bank_accounts(id, status)").eq("run_id", runId).maybeSingle()) as unknown as
     | null | { id: string; name: string; account: { id: string; status: string } | null };
   const draft = (conversation.draft ?? {}) as unknown as ChargeDraft;
   const next = async (step: string, d: Partial<ChargeDraft> = {}) => {
@@ -211,7 +215,7 @@ async function offerLink(db: Db, runId: string, key: string) {
 }
 
 async function findLink(db: Db, runId: string, token: string) {
-  const session = ok(await db.from("onboarding_sessions").select().eq("token_hash", await hashToken(token)).maybeSingle());
+  const session = maybe(await db.from("onboarding_sessions").select().eq("token_hash", await hashToken(token)).maybeSingle());
   if (!session || session.run_id !== runId) throw new Error("Enlace no disponible para esta sesión.");
   if (session.used_at) throw new Error("Este enlace ya se utilizó. Regresa al chat.");
   if (new Date(session.expires_at) < new Date()) throw new Error("El enlace venció. Escribe vincular en el chat para obtener otro.");
@@ -237,12 +241,12 @@ export async function submitLink(db: Db, runId: string, token: string) {
 }
 
 export async function accountFor(db: Db, runId: string) {
-  const m = ok(await db.from("merchants").select("account:bank_accounts(provider_account_id)").eq("run_id", runId).maybeSingle()) as unknown as null | { account: { provider_account_id: string } | null };
+  const m = maybe(await db.from("merchants").select("account:bank_accounts(provider_account_id)").eq("run_id", runId).maybeSingle()) as unknown as null | { account: { provider_account_id: string } | null };
   return m?.account ?? null;
 }
 
 async function activateAccount(db: Db, runId: string, providerAccountId: string, key: string) {
-  const merchant = ok(await db.from("merchants").select("name, account:bank_accounts(id, provider_account_id, status)").eq("run_id", runId).maybeSingle()) as unknown as
+  const merchant = maybe(await db.from("merchants").select("name, account:bank_accounts(id, provider_account_id, status)").eq("run_id", runId).maybeSingle()) as unknown as
     | null | { name: string; account: { id: string; provider_account_id: string; status: string } | null };
   if (!merchant?.account || merchant.account.provider_account_id !== providerAccountId) throw new InvalidEvent("La cuenta no corresponde al negocio.");
   if (merchant.account.status === "ACTIVE") return;
@@ -269,7 +273,7 @@ type ChargeRow = { id: string; token: string; amount_cents: number; total_cents:
   merchant: { run_id: string; name: string; account: { id: string; status: string; last4: string } | null } };
 
 async function requestPayment(db: Db, runId: string, token: string, key: string) {
-  const charge = ok(await db.from("charges").select("id, token, amount_cents, total_cents, concept, status, merchant:merchants(run_id, name, account:bank_accounts(id, status, last4))").eq("token", token).maybeSingle()) as unknown as ChargeRow | null;
+  const charge = maybe(await db.from("charges").select("id, token, amount_cents, total_cents, concept, status, merchant:merchants(run_id, name, account:bank_accounts(id, status, last4))").eq("token", token).maybeSingle()) as unknown as ChargeRow | null;
   if (!charge || charge.merchant.run_id !== runId) return reply(db, runId, "CUSTOMER", "No encontré ese cobro. Pide al negocio que vuelva a compartirlo.", key);
   if (charge.status === "PAID") return reply(db, runId, "CUSTOMER", "Este cobro ya está pagado. No necesitas volver a pagar.", key);
   const account = charge.merchant.account;
@@ -292,14 +296,14 @@ async function requestPayment(db: Db, runId: string, token: string, key: string)
 export interface PaymentResult { transactionId: string; accountId: string; amountCents: number; outcome: "PAID" | "REJECTED" | "EXPIRED" }
 
 export async function attemptPayload(db: Db, runId: string, attemptId: string, outcome: PaymentResult["outcome"]): Promise<PaymentResult> {
-  const a = ok(await db.from("payment_attempts").select("provider_transaction_id, amount_cents, account:bank_accounts(provider_account_id), charge:charges(merchant:merchants(run_id))").eq("id", attemptId).maybeSingle()) as unknown as
+  const a = maybe(await db.from("payment_attempts").select("provider_transaction_id, amount_cents, account:bank_accounts(provider_account_id), charge:charges(merchant:merchants(run_id))").eq("id", attemptId).maybeSingle()) as unknown as
     | null | { provider_transaction_id: string; amount_cents: number; account: { provider_account_id: string }; charge: { merchant: { run_id: string } } };
   if (!a || a.charge.merchant.run_id !== runId) throw new Error("Solicitud no disponible en esta demo.");
   return { transactionId: a.provider_transaction_id, accountId: a.account.provider_account_id, amountCents: a.amount_cents, outcome };
 }
 
 async function paymentResult(db: Db, runId: string, data: PaymentResult, key: string) {
-  const attempt = ok(await db.from("payment_attempts").select("id, charge_id, amount_cents, status, account:bank_accounts(provider_account_id, last4), charge:charges(token, concept, status, amount_cents, total_cents, merchant:merchants(run_id, name)), payment:payments(id)").eq("provider_transaction_id", data.transactionId).maybeSingle()) as unknown as
+  const attempt = maybe(await db.from("payment_attempts").select("id, charge_id, amount_cents, status, account:bank_accounts(provider_account_id, last4), charge:charges(token, concept, status, amount_cents, total_cents, merchant:merchants(run_id, name)), payment:payments(id)").eq("provider_transaction_id", data.transactionId).maybeSingle()) as unknown as
     | null | { id: string; charge_id: string; amount_cents: number; status: string; account: { provider_account_id: string; last4: string };
       charge: { token: string; concept: string; status: string; amount_cents: number; total_cents: number; merchant: { run_id: string; name: string } }; payment: { id: string } | null };
   if (!attempt || attempt.charge.merchant.run_id !== runId || attempt.account.provider_account_id !== data.accountId || attempt.amount_cents !== data.amountCents) {
@@ -326,7 +330,7 @@ async function paymentResult(db: Db, runId: string, data: PaymentResult, key: st
 }
 
 export async function eventForReplay(db: Db, runId: string, id: string) {
-  const event = ok(await db.from("webhook_events").select().eq("id", id).maybeSingle());
+  const event = maybe(await db.from("webhook_events").select().eq("id", id).maybeSingle());
   if (!event || event.run_id !== runId) throw new Error("Evento no disponible.");
   return event;
 }
