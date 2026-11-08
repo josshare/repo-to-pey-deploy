@@ -3,6 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { MessageCircle, CreditCard, RotateCcw, ArrowUp } from "lucide-react";
+import { PaymentCelebration, PaymentQR } from "@/components/payment-experience";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { money, type Action, type Actor } from "@/lib/pey/domain";
 import type { getState } from "@/lib/pey/engine.server";
@@ -39,6 +41,7 @@ function Index() {
   const { data } = useQuery(stateQuery);
   const [busy, setBusy] = useState(false);
   const [bankAttempt, setBankAttempt] = useState<string | null>(null);
+  const [chatActor, setChatActor] = useState<Actor>("MERCHANT");
   const starting = useRef(false);
 
   useEffect(() => {
@@ -94,6 +97,7 @@ function Index() {
   const latestPaymentEvent = state?.events.find((e) => e.type === "payment.result" && e.status === "DONE");
   const pendingAttempt = charge?.attempts.find((a) => a.status === "PENDING");
   const bank = bankAttempt ? findAttempt(bankAttempt) : null;
+  const paymentIds = state?.merchant?.charges.flatMap(c => c.attempts.filter(a => a.payment).map(a => a.id)) ?? [];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -105,8 +109,9 @@ function Index() {
         <span className="ml-auto hidden items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs sm:flex">
           <span className="size-1.5 rounded-full bg-primary" /> Demo · Sin dinero real
         </span>
+        {state && <PaymentCelebration paymentIds={paymentIds} />}
         <Button variant="ghost" className="ml-auto sm:ml-0" onClick={() => run(startDemo)} disabled={busy}>
-          Nueva demo ↗
+          <RotateCcw /> Nueva demo
         </Button>
       </header>
 
@@ -125,18 +130,27 @@ function Index() {
           </div>
         </section>
 
-        <div className="grid items-start gap-5 lg:grid-cols-[1fr_1fr_300px]">
-          <ChatCard n="01" title="El negocio" subtitle="Vende productos, servicios o citas" actor="MERCHANT" state={state} busy={busy} onSend={send} onAction={onAction} isOpen={isOpen} />
-          <ChatCard n="02" title="El cliente" subtitle="Paga desde su aplicación bancaria" actor="CUSTOMER" state={state} busy={busy} onSend={send} onAction={onAction} isOpen={isOpen} />
+        <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(320px,420px)]">
+          <div className="min-w-0">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <h2 className="flex items-center gap-2 font-display text-lg font-bold"><MessageCircle className="size-5 text-primary" /> WhatsApp</h2>
+              <div role="group" aria-label="Vista del chat" className="flex rounded-lg bg-secondary p-1">
+                <Button size="sm" variant={chatActor === "MERCHANT" ? "default" : "ghost"} aria-pressed={chatActor === "MERCHANT"} onClick={() => setChatActor("MERCHANT")}>Negocio</Button>
+                <Button size="sm" variant={chatActor === "CUSTOMER" ? "default" : "ghost"} aria-pressed={chatActor === "CUSTOMER"} onClick={() => setChatActor("CUSTOMER")}>Cliente</Button>
+              </div>
+            </div>
+            <div className="mx-auto max-w-[530px]">
+              <ChatCard key={chatActor} n={chatActor === "MERCHANT" ? "01" : "02"} title={chatActor === "MERCHANT" ? "El negocio" : "El cliente"} subtitle={chatActor === "MERCHANT" ? "Vende productos, servicios o citas" : "Paga desde su aplicación bancaria"} actor={chatActor} state={state} busy={busy} onSend={send} onAction={onAction} isOpen={isOpen} />
+            </div>
+          </div>
 
           <aside className="space-y-4" aria-label="Panel de prueba">
             <div>
-              <p className="mb-1 text-[10px] font-bold tracking-[0.12em] text-primary">TÚ CONTROLAS LA PRUEBA</p>
-              <h2 className="font-display text-xl font-bold">Detrás del cobro</h2>
-              <p className="text-sm text-muted-foreground">Simula lo que responderían Pey y el banco.</p>
+              <p className="mb-1 text-[10px] font-bold tracking-[0.12em] text-primary">PEY / TERMINAL DEMO</p>
+              <h2 className="flex items-center gap-2 font-display text-xl font-bold"><CreditCard className="size-5 text-primary" /> Tu cobro, en vivo</h2>
             </div>
 
-            <div className="space-y-2 rounded-xl border border-border bg-card p-4">
+            <div className="space-y-2 border-y border-border py-4">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>Cuenta del negocio</span>
                 <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${account?.status === "ACTIVE" ? "bg-accent text-primary-deep" : account ? "bg-sun/40 text-foreground" : "bg-muted"}`}>
@@ -152,15 +166,13 @@ function Index() {
 
             <Ticket charge={charge} />
 
-            <Button className="w-full" disabled={!pendingAttempt || charge?.status === "PAID" || busy} onClick={() => pendingAttempt && openBank(pendingAttempt.id)}>
-              Abrir banco simulado
-            </Button>
+            <PaymentQR attempt={pendingAttempt ?? charge?.attempts[0]} amount={charge?.amount_cents ?? 0} paid={charge?.status === "PAID"} busy={busy} onOpen={() => pendingAttempt && openBank(pendingAttempt.id)} />
             <Button variant="ghost" className="w-full" disabled={!latestPaymentEvent || busy} onClick={() => latestPaymentEvent && run(() => replayEvent({ data: { eventId: latestPaymentEvent.id } }))}>
               Repetir evento de pago
             </Button>
             <p className="text-[11px] text-muted-foreground">Repite el evento para comprobar que no se duplica el pago.</p>
 
-            <details className="rounded-xl border border-border bg-card p-3 text-sm">
+            <details className="border-t border-border py-3 text-sm">
               <summary className="cursor-pointer font-semibold">Actividad de la prueba ({state?.events.length ?? 0})</summary>
               <ol className="mt-2 space-y-2">
                 {state?.events.map((e) => (
@@ -178,7 +190,7 @@ function Index() {
 
         <footer className="mt-8 flex flex-wrap justify-between gap-2 border-t border-border pt-4 text-xs text-muted-foreground">
           <span><b className="text-foreground">Los chats, las cuentas y los pagos son simulados.</b> No se envían WhatsApps ni se mueve dinero.</span>
-          <span>Pey / Sent simulados</span>
+           <span>Pey + Kapso · Integración pendiente</span>
         </footer>
       </main>
 
@@ -260,7 +272,8 @@ function ChatCard(props: {
   };
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm" aria-label={`Conversación de ${props.title.toLowerCase()}`}>
+    <section className="demo-phone overflow-hidden border border-border bg-card shadow-sm" aria-label={`Conversación de ${props.title.toLowerCase()}`}>
+      <div className="flex h-9 items-center justify-between px-6 font-mono text-[10px]"><span>9:41</span><span className="phone-camera" aria-hidden="true" /><span>▮▮▮ ▰</span></div>
       <div className="flex items-center gap-3 px-5 py-4">
         <span className="rounded-lg border border-border bg-muted px-2 py-1.5 font-mono text-[11px]">{props.n}</span>
         <div>
@@ -275,7 +288,7 @@ function ChatCard(props: {
           <span className="block text-[10px] opacity-80">Cuenta de demostración</span>
         </div>
       </div>
-      <div ref={listRef} role="log" aria-live="polite" className="chat-pattern flex h-[440px] flex-col gap-3 overflow-y-auto px-4 py-5">
+      <div ref={listRef} role="log" aria-live="polite" className="chat-pattern flex h-[420px] flex-col gap-3 overflow-y-auto px-4 py-5">
         {!messages.length && <p className="m-auto text-xs text-muted-foreground">Preparando conversación…</p>}
         {messages.map((m) => (
           <div key={m.id} className={`max-w-[92%] whitespace-pre-wrap break-words px-3 pb-1.5 pt-2.5 text-xs leading-relaxed shadow-sm ${m.direction === "IN" ? "self-end rounded-[13px_2px_13px_13px] bg-accent" : "self-start rounded-[2px_13px_13px_13px] bg-card"}`}>
@@ -286,9 +299,9 @@ function ChatCard(props: {
                   if (a.url) return <a key={i} href={a.url} className="rounded-lg border border-primary/30 px-3 py-2 text-center font-semibold text-primary hover:bg-accent">{a.label}</a>;
                   const closed = a.kind === "bank" && a.id ? !props.isOpen(a.id) : false;
                   return (
-                    <button key={i} disabled={busy || closed} onClick={() => props.onAction(actor, a)} className="rounded-lg border border-primary/30 px-3 py-2 font-semibold text-primary transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-45">
+                    <Button variant="outline" key={i} disabled={busy || closed} onClick={() => props.onAction(actor, a)} className="h-auto whitespace-normal border-primary/30 px-3 py-2 text-xs font-semibold text-primary">
                       {closed ? "Solicitud cerrada" : a.label}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
@@ -302,8 +315,8 @@ function ChatCard(props: {
       <form onSubmit={submit} className="flex gap-2 border-t border-border p-3">
         <label className="sr-only" htmlFor={`${actor}-input`}>Mensaje</label>
         <input id={`${actor}-input`} value={text} onChange={(e) => setText(e.target.value)} maxLength={1000} placeholder="Escribe aquí…" autoComplete="off"
-          className="flex-1 rounded-full border border-input bg-background px-4 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" />
-        <button type="submit" disabled={busy || !state} aria-label="Enviar mensaje" className="grid size-10 place-items-center rounded-full bg-primary text-primary-foreground disabled:opacity-45">↑</button>
+          className="min-w-0 flex-1 rounded-full border border-input bg-background px-4 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+        <Button type="submit" size="icon" disabled={busy || !state} aria-label="Enviar mensaje" className="size-10 shrink-0 rounded-full"><ArrowUp /></Button>
       </form>
     </section>
   );

@@ -1,5 +1,7 @@
 # Pey + Kapso
 
+- [x] Add WhatsApp phone / Pey terminal view, demo QR with persisted expiry countdown, opt-in payment sound and replay-safe confetti.
+
 - [x] Connect Pey credentials and verify read-only access; docs offer production only, not a payment sandbox.
 - [x] Connect Kapso credentials and identify the Sandbox WhatsApp sender.
 - [ ] Replace simulated onboarding and payment requests with verified Pey operations.
