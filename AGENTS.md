@@ -28,3 +28,7 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Pey demo
+- Demo logic lives in `src/lib/pey/engine.server.ts`, called only from server functions in `src/lib/pey/demo.functions.ts` with the admin client; why: visitors are anonymous, identified by an httpOnly `pey_demo` cookie, so tables have RLS on with no public policies.
+- Simulated provider events are processed synchronously and deduplicated by (provider, external_id) in `webhook_events`; why: replaces the original NestJS outbox/job queue, which cannot run on the edge runtime.
