@@ -35,3 +35,4 @@ use the editor.
 
 ## External providers
 - Real Pey and Kapso requests must run server-side through their linked custom connector gateways, using the credential names returned by connector tools; why: private credentials must never reach the browser or bypass gateway-backed connections.
+- Verified real-provider notifications are stored in a separate locked inbox, and receivers fail closed until business processing is activated; why: anonymous demo records and simulated controls must never affect real payments.
