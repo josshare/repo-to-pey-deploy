@@ -109,10 +109,10 @@ function Index() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="flex h-20 items-center gap-6 border-b border-border bg-card px-[4%]">
+      <header className="flex h-20 items-center gap-2 border-b border-border bg-card px-[4%] sm:gap-6">
         <a href="/" className="flex items-center gap-2 font-display text-3xl font-bold" aria-label="Pey demo, inicio">
           <span className="grid size-9 place-items-center rounded-lg bg-primary pb-1 text-3xl leading-none text-primary-foreground">p</span>
-          pey<span className="ml-1 font-sans text-sm font-medium text-muted-foreground">+ WhatsApp</span>
+          pey<span className="ml-1 hidden font-sans text-sm font-medium text-muted-foreground sm:inline">+ WhatsApp</span>
         </a>
         <span className="ml-auto hidden items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs sm:flex">
           <span className="size-1.5 rounded-full bg-primary" /> Demo · Sin dinero real
