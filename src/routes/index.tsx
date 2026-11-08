@@ -8,6 +8,7 @@ import { PaymentCelebration, PaymentQR } from "@/components/payment-experience";
 import { remainingSeconds } from "@/lib/pey/experience";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { money, type Action, type Actor } from "@/lib/pey/domain";
+import heroIllustration from "@/assets/pey-demo-ilustracion.png.asset.json";
 import type { getState } from "@/lib/pey/engine.server";
 import {
   activateDemoAccount,
@@ -124,6 +125,28 @@ function Index() {
       </header>
 
       <main className="mx-auto max-w-[1570px] px-[4%] pb-6 pt-8">
+        <section className="mb-8 grid items-center gap-6 overflow-hidden rounded-2xl border border-border bg-card shadow-sm lg:grid-cols-2" aria-label="Cómo funciona la demo">
+          <div className="p-6 sm:p-8">
+            <p className="mb-2 text-[10px] font-bold tracking-[0.12em] text-primary">ASÍ SE USA LA DEMO</p>
+            <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Genera un código, paga en segundos</h2>
+            <ol className="mt-5 space-y-4">
+              <li className="flex gap-3">
+                <span className="grid size-7 shrink-0 place-items-center rounded-full bg-primary font-display text-sm font-bold text-primary-foreground">1</span>
+                <p className="text-sm text-muted-foreground"><strong className="text-foreground">Registra tu negocio</strong> en el chat del Negocio y activa la cuenta demo.</p>
+              </li>
+              <li className="flex gap-3">
+                <span className="grid size-7 shrink-0 place-items-center rounded-full bg-primary font-display text-sm font-bold text-primary-foreground">2</span>
+                <p className="text-sm text-muted-foreground"><strong className="text-foreground">Crea un cobro o anticipo</strong> y compártelo con el Cliente por el chat.</p>
+              </li>
+              <li className="flex gap-3">
+                <span className="grid size-7 shrink-0 place-items-center rounded-full bg-primary font-display text-sm font-bold text-primary-foreground">3</span>
+                <p className="text-sm text-muted-foreground"><strong className="text-foreground">El cliente paga</strong> desde el banco simulado y ambos ven la confirmación al instante.</p>
+              </li>
+            </ol>
+          </div>
+          <img src={heroIllustration.url} alt="Ilustración: una clienta paga con un código QR de Pey en el mostrador de una tienda" className="h-full w-full object-cover" loading="eager" />
+        </section>
+
         <section className="mb-7 flex flex-wrap items-end justify-between gap-5">
           <div>
             <p className="mb-2 text-[10px] font-bold tracking-[0.12em] text-primary">DEL “TE TRANSFIERO” AL “YA RECIBÍ”</p>
