@@ -33,7 +33,7 @@ export const getDemoState = createServerFn({ method: "GET" }).handler(async () =
 });
 
 export const sendDemoMessage = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ actor: z.enum(["MERCHANT", "CUSTOMER"]), text: z.string().trim().min(1, "Escribe un mensaje.").max(1000), messageId: z.string().uuid() }))
+  .validator(z.object({ actor: z.enum(["MERCHANT", "CUSTOMER"]), text: z.string().trim().min(1, "Escribe un mensaje.").max(1000), messageId: z.string().uuid() }))
   .handler(async ({ data }) => {
     const { db, engine, run } = await session();
     return engine.simulated(db, "sent", run.id, "message.received", data, data.messageId);
@@ -47,7 +47,7 @@ export const activateDemoAccount = createServerFn({ method: "POST" }).handler(as
 });
 
 export const resolveAttempt = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ attemptId: z.string().uuid(), outcome: z.enum(["PAID", "REJECTED", "EXPIRED"]) }))
+  .validator(z.object({ attemptId: z.string().uuid(), outcome: z.enum(["PAID", "REJECTED", "EXPIRED"]) }))
   .handler(async ({ data }) => {
     const { db, engine, run } = await session();
     const payload = await engine.attemptPayload(db, run.id, data.attemptId, data.outcome);
@@ -55,7 +55,7 @@ export const resolveAttempt = createServerFn({ method: "POST" })
   });
 
 export const replayEvent = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ eventId: z.string().uuid() }))
+  .validator(z.object({ eventId: z.string().uuid() }))
   .handler(async ({ data }) => {
     const { db, engine, run } = await session();
     const ev = await engine.eventForReplay(db, run.id, data.eventId);
@@ -63,14 +63,14 @@ export const replayEvent = createServerFn({ method: "POST" })
   });
 
 export const inspectOnboarding = createServerFn({ method: "GET" })
-  .inputValidator(z.object({ token: z.string().min(16).max(64) }))
+  .validator(z.object({ token: z.string().min(16).max(64) }))
   .handler(async ({ data }) => {
     const { db, engine, run } = await session();
     return engine.inspectLink(db, run.id, data.token);
   });
 
 export const submitOnboarding = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ token: z.string().min(16).max(64) }))
+  .validator(z.object({ token: z.string().min(16).max(64) }))
   .handler(async ({ data }) => {
     const { db, engine, run } = await session();
     return engine.submitLink(db, run.id, data.token);
