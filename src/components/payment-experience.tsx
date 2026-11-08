@@ -67,7 +67,7 @@ export function PaymentCelebration({ paymentIds }: { paymentIds: string[] }) {
 }
 
 export function PaymentQR({ attempt, amount, paid, onOpen, busy }: {
-  attempt?: { id: string; expires_at: string; status: string };
+  attempt: { id: string; expires_at: string; status: string } | undefined;
   amount: number; paid: boolean; onOpen: () => void; busy: boolean;
 }) {
   const [now, setNow] = useState<number | null>(null);
