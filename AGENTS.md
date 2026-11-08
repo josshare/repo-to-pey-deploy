@@ -32,3 +32,6 @@ use the editor.
 ## Pey demo
 - Demo logic lives in `src/lib/pey/engine.server.ts`, called only from server functions in `src/lib/pey/demo.functions.ts` with the admin client; why: visitors are anonymous, identified by an httpOnly `pey_demo` cookie, so tables have RLS on with no public policies.
 - Simulated provider events are processed synchronously and deduplicated by (provider, external_id) in `webhook_events`; why: replaces the original NestJS outbox/job queue, which cannot run on the edge runtime.
+
+## External providers
+- Real Pey and Kapso requests must run server-side through their linked custom connector gateways, using the credential names returned by connector tools; why: private credentials must never reach the browser or bypass gateway-backed connections.
