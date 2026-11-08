@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, CreditCard, RotateCcw, ArrowUp } from "lucide-react";
 import { PaymentCelebration, PaymentQR } from "@/components/payment-experience";
+import { remainingSeconds } from "@/lib/pey/experience";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { money, type Action, type Actor } from "@/lib/pey/domain";
 import type { getState } from "@/lib/pey/engine.server";
@@ -42,7 +43,14 @@ function Index() {
   const [busy, setBusy] = useState(false);
   const [bankAttempt, setBankAttempt] = useState<string | null>(null);
   const [chatActor, setChatActor] = useState<Actor>("MERCHANT");
+  const [now, setNow] = useState(0);
   const starting = useRef(false);
+
+  useEffect(() => {
+    setNow(Date.now());
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     if (data && !data.ok && !starting.current) {
@@ -76,7 +84,7 @@ function Index() {
   };
   const isOpen = (id: string) => {
     const f = findAttempt(id);
-    return !!f && f.attempt.status === "PENDING" && f.charge.status !== "PAID";
+    return !!f && f.attempt.status === "PENDING" && f.charge.status !== "PAID" && remainingSeconds(f.attempt.expires_at, now) > 0;
   };
   const openBank = (id: string) => {
     if (!isOpen(id)) {
@@ -206,7 +214,8 @@ function Index() {
               <strong className="font-display text-4xl">{money(bank.charge.amount_cents)}</strong>
               <p className="text-sm text-muted-foreground">{bank.charge.concept}</p>
               <div className="rounded-lg bg-muted p-3 text-xs text-muted-foreground">Cuenta ficticia •••• 4242. Esta prueba no mueve dinero ni abre tu banco real.</div>
-              <Button disabled={busy} onClick={() => run(async () => { await resolveAttempt({ data: { attemptId: bank.attempt.id, outcome: "PAID" } }); setBankAttempt(null); })}>
+              {!isOpen(bank.attempt.id) && <p className="text-sm text-destructive">Solicitud cerrada. Pide otra solicitud en el chat.</p>}
+              <Button disabled={busy || !isOpen(bank.attempt.id)} onClick={() => { if (!isOpen(bank.attempt.id)) return; void run(async () => { await resolveAttempt({ data: { attemptId: bank.attempt.id, outcome: "PAID" } }); setBankAttempt(null); }); }}>
                 Confirmar pago simulado
               </Button>
               <div className="flex justify-center gap-2">
