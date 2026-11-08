@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VincularRouteImport } from './routes/vincular'
+import { Route as ApiPublicKapsoWebhookRouteImport } from './routes/api/public/kapso/webhook'
+import { Route as ApiPublicPeyWebhookRouteImport } from './routes/api/public/pey/webhook'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +24,56 @@ const VincularRoute = VincularRouteImport.update({
   path: '/vincular',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicKapsoWebhookRoute = ApiPublicKapsoWebhookRouteImport.update({
+  id: '/api/public/kapso/webhook',
+  path: '/api/public/kapso/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPeyWebhookRoute = ApiPublicPeyWebhookRouteImport.update({
+  id: '/api/public/pey/webhook',
+  path: '/api/public/pey/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/vincular': typeof VincularRoute
+  '/api/public/kapso/webhook': typeof ApiPublicKapsoWebhookRoute
+  '/api/public/pey/webhook': typeof ApiPublicPeyWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/vincular': typeof VincularRoute
+  '/api/public/kapso/webhook': typeof ApiPublicKapsoWebhookRoute
+  '/api/public/pey/webhook': typeof ApiPublicPeyWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/vincular': typeof VincularRoute
+  '/api/public/kapso/webhook': typeof ApiPublicKapsoWebhookRoute
+  '/api/public/pey/webhook': typeof ApiPublicPeyWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/vincular'
+  fullPaths:
+    '/' | '/vincular' | '/api/public/kapso/webhook' | '/api/public/pey/webhook'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/vincular'
-  id: '__root__' | '/' | '/vincular'
+  to:
+    '/' | '/vincular' | '/api/public/kapso/webhook' | '/api/public/pey/webhook'
+  id:
+    | '__root__'
+    | '/'
+    | '/vincular'
+    | '/api/public/kapso/webhook'
+    | '/api/public/pey/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   VincularRoute: typeof VincularRoute
+  ApiPublicKapsoWebhookRoute: typeof ApiPublicKapsoWebhookRoute
+  ApiPublicPeyWebhookRoute: typeof ApiPublicPeyWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +92,28 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VincularRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/kapso/webhook': {
+      id: '/api/public/kapso/webhook'
+      path: '/api/public/kapso/webhook'
+      fullPath: '/api/public/kapso/webhook'
+      preLoaderRoute: typeof ApiPublicKapsoWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/pey/webhook': {
+      id: '/api/public/pey/webhook'
+      path: '/api/public/pey/webhook'
+      fullPath: '/api/public/pey/webhook'
+      preLoaderRoute: typeof ApiPublicPeyWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   VincularRoute: VincularRoute,
+  ApiPublicKapsoWebhookRoute: ApiPublicKapsoWebhookRoute,
+  ApiPublicPeyWebhookRoute: ApiPublicPeyWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
