@@ -146,6 +146,39 @@ export type Database = {
         }
         Relationships: []
       }
+      live_provider_events: {
+        Row: {
+          delivery_id: string
+          event_type: string
+          id: string
+          payload: Json
+          processed_at: string | null
+          processing_error: string | null
+          provider: string
+          received_at: string
+        }
+        Insert: {
+          delivery_id: string
+          event_type: string
+          id?: string
+          payload: Json
+          processed_at?: string | null
+          processing_error?: string | null
+          provider: string
+          received_at?: string
+        }
+        Update: {
+          delivery_id?: string
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          processing_error?: string | null
+          provider?: string
+          received_at?: string
+        }
+        Relationships: []
+      }
       merchants: {
         Row: {
           created_at: string
