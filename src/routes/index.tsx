@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { money, type Action, type Actor } from "@/lib/pey/domain";
+import type { getState } from "@/lib/pey/engine.server";
 import {
   activateDemoAccount,
   getDemoState,
@@ -28,7 +29,7 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type State = Extract<Awaited<ReturnType<typeof getDemoState>>, { ok: true }>;
+type State = Awaited<ReturnType<typeof getState>>;
 type Charge = NonNullable<State["merchant"]>["charges"][number];
 
 const stateQuery = { queryKey: ["demo-state"], queryFn: () => getDemoState() };
@@ -47,7 +48,7 @@ function Index() {
     }
   }, [data, qc]);
 
-  const state = data?.ok ? data : null;
+  const state: State | null = data && data.ok ? (data as unknown as State) : null;
 
   async function run(fn: () => Promise<unknown>) {
     if (busy) return;
