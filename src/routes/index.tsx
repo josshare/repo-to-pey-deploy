@@ -76,14 +76,17 @@ function Index() {
     return !!f && f.attempt.status === "PENDING" && f.charge.status !== "PAID";
   };
   const openBank = (id: string) => {
-    if (!isOpen(id)) return toast.error("Esta solicitud ya no está pendiente. Revisa el chat del cliente.");
+    if (!isOpen(id)) {
+      toast.error("Esta solicitud ya no está pendiente. Revisa el chat del cliente.");
+      return;
+    }
     setBankAttempt(id);
   };
 
   const onAction = (actor: Actor, a: Action) => {
-    if (a.kind === "share" && a.id) return send("CUSTOMER", `pagar ${a.id}`);
-    if (a.kind === "bank" && a.id) return openBank(a.id);
-    if (a.text) return send(actor, a.text);
+    if (a.kind === "share" && a.id) void send("CUSTOMER", `pagar ${a.id}`);
+    else if (a.kind === "bank" && a.id) openBank(a.id);
+    else if (a.text) void send(actor, a.text);
   };
 
   const charge = state?.merchant?.charges[0];
@@ -209,7 +212,7 @@ function Index() {
 const EVENT_NAMES: Record<string, string> = { "message.received": "Mensaje recibido", "bank.account.activated": "Activación de cuenta", "payment.result": "Resultado del pago" };
 const EVENT_STATUS: Record<string, string> = { DONE: "Procesado", PENDING: "En cola", REJECTED: "Rechazado por validación", FAILED: "Requiere revisión" };
 
-function Ticket({ charge }: { charge?: Charge }) {
+function Ticket({ charge }: { charge: Charge | undefined }) {
   const received = charge?.attempts.reduce((s, a) => s + (a.payment?.amount_cents ?? 0), 0) ?? 0;
   const payments = charge?.attempts.filter((a) => a.payment).length ?? 0;
   return (
