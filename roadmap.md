@@ -1,14 +1,14 @@
 # Pey + Kapso
 
-- [ ] Prepare a separate owner-only real-order flow: fixed $0.01 QR, verified payment and ready-to-prepare state, without creating a payment during setup.
+- [x] Prepare a separate owner-only real-order flow: fixed $0.01 QR, verified payment and ready-to-prepare state, without creating a payment during setup.
 
 - [x] Add WhatsApp phone / Pey terminal view, demo QR with persisted expiry countdown, opt-in payment sound and replay-safe confetti.
 
-- [x] Connect Pey credentials and verify read-only access; docs offer production only, not a payment sandbox.
+- [x] Connect Pey credentials and verify read-only access; current linked connection uses production.
 - [x] Connect Kapso credentials and identify the Sandbox WhatsApp sender.
 - [ ] Replace simulated onboarding and payment requests with verified Pey operations.
 - [ ] Persist and verify Pey and Kapso callbacks; reconcile payment and message states safely.
   - [x] Create isolated locked inbox and signature-verifying receivers; fail closed while live processing is not activated.
 - [ ] Test a complete WhatsApp charge and confirmed payment without simulated bank controls.
 
-Current blockers: provider callback signing secrets and setup, publication for external callbacks, and explicit consent before testing any real-money payment. Receivers are prepared locally but intentionally return 503 while setup or business processing is incomplete. Real onboarding, sending, reconciliation, and end-to-end flow are not implemented yet.
+Current blockers: no auth users or enabled live operator, no verified recipient account assigned, missing Pey webhook signing secret and Kapso number/key setup, and publication of the new live-order flow. User consent is limited to $0.01 MXN per payment. Real QR creation and atomic reconciliation are implemented but not activated or tested with a real payment. Unmatched events and Kapso processing still return 503. No automated refunds, real onboarding or WhatsApp sending are implemented. Public desktop/mobile checks and 17 unit tests passed; authenticated and real-payment end-to-end checks remain blocked by setup.
