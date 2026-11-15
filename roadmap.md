@@ -1,6 +1,7 @@
 # Pey + Kapso
 
-- [ ] Add basic Google sign-in while preserving explicit owner authorization; owner email was not supplied, so automatic operator activation is blocked.
+- [x] Add basic Google sign-in while preserving explicit owner authorization. Provider enabled; button, mobile layout and existing tests verified. Complete Google login still requires the user's interaction.
+- [ ] Enable the intended payment owner only after identifying their Google account and verifying recipient setup; owner email was not supplied, so activation is blocked.
 
 - [ ] Add repository documentation and Mermaid diagrams matching the reference project's level of clarity, separating demo, prepared real payments and pending activation.
 
