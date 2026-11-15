@@ -1,5 +1,7 @@
 # Pey + Kapso
 
+- [ ] Prepare a separate owner-only real-order flow: fixed $0.01 QR, verified payment and ready-to-prepare state, without creating a payment during setup.
+
 - [x] Add WhatsApp phone / Pey terminal view, demo QR with persisted expiry countdown, opt-in payment sound and replay-safe confetti.
 
 - [x] Connect Pey credentials and verify read-only access; docs offer production only, not a payment sandbox.
