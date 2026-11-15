@@ -36,4 +36,5 @@ use the editor.
 
 ## External providers
 - Real Pey and Kapso requests must run server-side through their linked custom connector gateways, using the credential names returned by connector tools; why: private credentials must never reach the browser or bypass gateway-backed connections.
-- Verified real-provider notifications are stored in a separate locked inbox, and receivers fail closed until business processing is activated; why: anonymous demo records and simulated controls must never affect real payments.
+- Verified real-provider notifications are stored in a separate locked inbox; only matched Pey QR payments reconcile isolated live orders atomically, while Kapso and unrelated events fail closed; why: anonymous demo controls must never affect real payments.
+- Real orders require an authenticated enabled operator with a server-managed recipient account, fixed validated test amount and explicit consent; QR requests are atomically claimed and never automatically retried after uncertainty; why: public visitors cannot spend connector credentials and retries must not duplicate charges.

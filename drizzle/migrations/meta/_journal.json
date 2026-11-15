@@ -15,6 +15,13 @@
       "when": 1794102046325,
       "tag": "0001_create_live_provider_inbox",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794765466496,
+      "tag": "0002_prepare_live_pey_orders",
+      "breakpoints": true
     }
   ]
 }

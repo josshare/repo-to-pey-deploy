@@ -9,6 +9,7 @@ import { remainingSeconds } from "@/lib/pey/experience";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { money, type Action, type Actor } from "@/lib/pey/domain";
 import heroIllustration from "@/assets/pey-demo-ilustracion.png.asset.json";
+import { LiveOrdersPanel } from "@/components/live-orders-panel";
 import type { getState } from "@/lib/pey/engine.server";
 import {
   activateDemoAccount,
@@ -218,6 +219,8 @@ function Index() {
             </details>
           </aside>
         </div>
+
+        <LiveOrdersPanel />
 
         <footer className="mt-8 flex flex-wrap justify-between gap-2 border-t border-border pt-4 text-xs text-muted-foreground">
           <span><b className="text-foreground">Los chats, las cuentas y los pagos son simulados.</b> No se envían WhatsApps ni se mueve dinero.</span>

@@ -146,6 +146,72 @@ export type Database = {
         }
         Relationships: []
       }
+      live_orders: {
+        Row: {
+          amount_cents: number
+          bank_account_id: string
+          concept: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          owner_id: string
+          paid_at: string | null
+          provider_qr_id: string | null
+          qr_string: string | null
+          request_id: string
+          status: string
+          transaction_id: string | null
+        }
+        Insert: {
+          amount_cents?: number
+          bank_account_id: string
+          concept: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          owner_id: string
+          paid_at?: string | null
+          provider_qr_id?: string | null
+          qr_string?: string | null
+          request_id: string
+          status?: string
+          transaction_id?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          bank_account_id?: string
+          concept?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          owner_id?: string
+          paid_at?: string | null
+          provider_qr_id?: string | null
+          qr_string?: string | null
+          request_id?: string
+          status?: string
+          transaction_id?: string | null
+        }
+        Relationships: []
+      }
+      live_payment_operators: {
+        Row: {
+          bank_account_id: string
+          enabled: boolean
+          user_id: string
+        }
+        Insert: {
+          bank_account_id: string
+          enabled?: boolean
+          user_id: string
+        }
+        Update: {
+          bank_account_id?: string
+          enabled?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       live_provider_events: {
         Row: {
           delivery_id: string
@@ -416,7 +482,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      confirm_live_pey_order: {
+        Args: {
+          p_account_id: string
+          p_amount: number
+          p_paid_at: string
+          p_qr_id: string
+          p_transaction_id: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
