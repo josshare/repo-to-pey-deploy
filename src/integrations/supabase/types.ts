@@ -149,7 +149,7 @@ export type Database = {
       live_orders: {
         Row: {
           amount_cents: number
-          bank_account_id: string
+          bank_account_id: string | null
           concept: string
           created_at: string
           expires_at: string | null
@@ -164,7 +164,7 @@ export type Database = {
         }
         Insert: {
           amount_cents?: number
-          bank_account_id: string
+          bank_account_id?: string | null
           concept: string
           created_at?: string
           expires_at?: string | null
@@ -179,7 +179,7 @@ export type Database = {
         }
         Update: {
           amount_cents?: number
-          bank_account_id?: string
+          bank_account_id?: string | null
           concept?: string
           created_at?: string
           expires_at?: string | null
@@ -196,17 +196,17 @@ export type Database = {
       }
       live_payment_operators: {
         Row: {
-          bank_account_id: string
+          bank_account_id: string | null
           enabled: boolean
           user_id: string
         }
         Insert: {
-          bank_account_id: string
+          bank_account_id?: string | null
           enabled?: boolean
           user_id: string
         }
         Update: {
-          bank_account_id?: string
+          bank_account_id?: string | null
           enabled?: boolean
           user_id?: string
         }

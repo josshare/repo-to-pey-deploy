@@ -20,4 +20,8 @@ describe("authorized real Pey test", () => {
     expect(peyPaymentEvent.safeParse({ ...payment, bankAccountId: undefined }).success).toBe(false);
     expect(peyPaymentEvent.safeParse({ ...payment, transactionId: "" }).success).toBe(false);
   });
+  it("omits the account so Pey uses the one linked to the API key", () => {
+    expect("bankAccountId" in qrRequest("Pedido", null, "order")).toBe(false);
+    expect(qrRequest("Pedido", "account", "order").bankAccountId).toBe("account");
+  });
 });

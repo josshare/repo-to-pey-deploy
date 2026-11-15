@@ -1,6 +1,6 @@
 import { peyPaymentEvent, peyQrResponse, qrRequest } from "./live-orders";
 
-export async function requestLiveQr(concept: string, accountId: string, orderId: string) {
+export async function requestLiveQr(concept: string, accountId: string | null, orderId: string) {
   const key = process.env["LOVABLE_API_KEY"];
   const connection = process.env["UDC_PEY_API_KEY"];
   if (!key || !connection) throw new Error("La conexión de Pey no está disponible.");
