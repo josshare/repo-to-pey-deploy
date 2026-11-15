@@ -1,5 +1,7 @@
 # Pey + Kapso
 
+- [ ] Add repository documentation and Mermaid diagrams matching the reference project's level of clarity, separating demo, prepared real payments and pending activation.
+
 - [x] Prepare a separate owner-only real-order flow: fixed $0.01 QR, verified payment and ready-to-prepare state, without creating a payment during setup.
 
 - [x] Add WhatsApp phone / Pey terminal view, demo QR with persisted expiry countdown, opt-in payment sound and replay-safe confetti.
