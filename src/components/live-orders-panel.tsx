@@ -7,9 +7,13 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { createLiveOrder, getLiveOrders, getLiveSetup } from "@/lib/pey/live-orders.functions";
 import { remainingSeconds } from "@/lib/pey/experience";
+import { lovable } from "@/integrations/lovable";
+import { useOwnerAuth } from "@/components/owner-auth";
+import { GoogleSignInButton } from "@/components/google-sign-in-button";
 
 export function LiveOrdersPanel() {
-  const [signedIn, setSignedIn] = useState(false);
+  const { user, checking } = useOwnerAuth();
+  const signedIn = Boolean(user);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [concept, setConcept] = useState("");
@@ -22,19 +26,34 @@ export function LiveOrdersPanel() {
   const readOrders = useServerFn(getLiveOrders);
   const createOrder = useServerFn(createLiveOrder);
   const setup = useQuery({ queryKey: ["live-setup"], queryFn: () => getLiveSetup(), retry: false });
-  const orders = useQuery({ queryKey: ["live-orders"], queryFn: () => readOrders(), enabled: signedIn, retry: false, refetchInterval: signedIn ? 5000 : false });
+  const orders = useQuery({ queryKey: ["live-orders", user?.id], queryFn: () => readOrders(), enabled: signedIn, retry: false, refetchInterval: signedIn ? 5000 : false });
 
   useEffect(() => {
-    let active = true;
-    supabase.auth.getSession().then(({ data }) => { if (active) setSignedIn(Boolean(data.session)); });
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSignedIn(Boolean(session));
-      qc.removeQueries({ queryKey: ["live-orders"] });
-    });
     setNow(Date.now());
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => { active = false; listener.subscription.unsubscribe(); window.clearInterval(timer); };
-  }, [qc]);
+    return () => { window.clearInterval(timer); };
+  }, []);
+
+  async function googleLogin() {
+    setBusy(true); setError("");
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+      if (result.error) throw new Error("No se pudo entrar con Google. Inténtalo de nuevo.");
+      if (result.redirected) return;
+    } catch { setError("No se pudo entrar con Google. Inténtalo de nuevo."); }
+    finally { setBusy(false); }
+  }
+
+  async function logout() {
+    setBusy(true); setError("");
+    try {
+      await qc.cancelQueries({ queryKey: ["live-orders"] });
+      qc.removeQueries({ queryKey: ["live-orders"] });
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) throw signOutError;
+    } catch { setError("No se pudo cerrar sesión. Inténtalo de nuevo."); }
+    finally { setBusy(false); }
+  }
 
   async function login(e: FormEvent) {
     e.preventDefault(); setBusy(true); setError("");
@@ -66,7 +85,7 @@ export function LiveOrdersPanel() {
           <p className="text-xs font-semibold text-primary">PEY · PRUEBA REAL CONTROLADA</p>
           <h2 className="mt-1 flex items-center gap-2 font-display text-2xl font-bold"><QrCode className="size-5" /> Pedidos de $0.01 MXN</h2>
         </div>
-        {signedIn && <Button variant="ghost" onClick={async () => { await supabase.auth.signOut(); }}>Cerrar sesión</Button>}
+        {signedIn && <div className="flex min-w-0 flex-wrap items-center gap-2"><span className="max-w-full break-all text-sm text-muted-foreground">{user?.email}</span><Button variant="ghost" disabled={busy} onClick={logout}>Cerrar sesión</Button></div>}
       </div>
       <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
         <span>Pey: {setup.data?.connected ? "conectado" : "pendiente"}</span>
@@ -75,9 +94,11 @@ export function LiveOrdersPanel() {
         <span>WhatsApp real: pendiente de Kapso</span>
       </div>
       {setup.error && <p className="mt-3 text-sm text-destructive">No se pudo comprobar la configuración de Pey.</p>}
-      {!signedIn ? (
+      {checking ? <p className="mt-4 text-sm text-muted-foreground">Comprobando sesión…</p> : !signedIn ? (
         <form onSubmit={login} className="mt-5 flex max-w-md flex-col gap-3">
           <h3 className="flex items-center gap-2 font-semibold"><LockKeyhole className="size-4" /> Acceso del dueño</h3>
+          <GoogleSignInButton disabled={busy} onClick={googleLogin} />
+          <div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />o con correo<span className="h-px flex-1 bg-border" /></div>
           <label className="text-sm">Correo<input aria-label="Correo del dueño" type="email" required autoComplete="username" value={email} onChange={e => setEmail(e.target.value)} className="mt-1 block h-10 w-full rounded-md border border-input bg-background px-3" /></label>
           <label className="text-sm">Contraseña<input aria-label="Contraseña del dueño" type="password" required autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} className="mt-1 block h-10 w-full rounded-md border border-input bg-background px-3" /></label>
           <Button type="submit" disabled={busy}>{busy ? "Entrando…" : "Entrar"}</Button>

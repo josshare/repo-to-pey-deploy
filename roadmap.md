@@ -1,5 +1,7 @@
 # Pey + Kapso
 
+- [ ] Add basic Google sign-in while preserving explicit owner authorization; owner email was not supplied, so automatic operator activation is blocked.
+
 - [ ] Add repository documentation and Mermaid diagrams matching the reference project's level of clarity, separating demo, prepared real payments and pending activation.
 
 - [x] Prepare a separate owner-only real-order flow: fixed $0.01 QR, verified payment and ready-to-prepare state, without creating a payment during setup.

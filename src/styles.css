@@ -79,6 +79,9 @@
 }
 
 :root {
+  --google-button-bg: #FFFFFF;
+  --google-button-border: #747775;
+  --google-button-text: #1F1F1F;
   --radius: 0.75rem;
   --background: oklch(0.973 0.006 230);
   --foreground: oklch(0.33 0.06 237);
@@ -118,6 +121,9 @@
 }
 
 .dark {
+  --google-button-bg: #131314;
+  --google-button-border: #8E918F;
+  --google-button-text: #E3E3E3;
   --background: oklch(0.129 0.042 264.695);
   --foreground: oklch(0.984 0.003 247.858);
   --card: oklch(0.208 0.042 265.755);
@@ -164,6 +170,12 @@
 }
 
 @layer components {
+  .google-sign-in, .google-sign-in:hover {
+    background: var(--google-button-bg);
+    border-color: var(--google-button-border);
+    color: var(--google-button-text);
+    font-family: "Google Sans", var(--font-sans);
+  }
   .demo-phone {
     border-radius: 28px;
     border-width: 5px;
