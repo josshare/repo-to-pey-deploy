@@ -1,5 +1,7 @@
 # Pey + Kapso
 
+- [x] Use the existing owner-confirmed Pey webhook secret stored under STRIPE_WEBHOOK_SECRET consistently in setup checks, QR authorization and webhook verification; dedicated Pey configuration takes precedence. Real delivery verification remains pending.
+
 - [x] Add basic Google sign-in while preserving explicit owner authorization. Provider enabled; button, mobile layout and existing tests verified. Complete Google login still requires the user's interaction.
 - [ ] Enable the intended payment owner only after identifying their Google account and verifying recipient setup; owner email was not supplied, so activation is blocked.
 

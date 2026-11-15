@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { readBoundedBody, verifyKapso, verifyPey } from "./live-webhooks";
+import { getPeyWebhookSecret } from "./webhook-secret.server";
 
 const objectPayload = z.object({}).passthrough();
 
@@ -10,7 +11,7 @@ export async function receiveLiveWebhook(request: Request, provider: "pey" | "ka
     ? request.headers.get("webhook-id") && request.headers.get("webhook-timestamp") && request.headers.get("webhook-signature")
     : request.headers.get("x-webhook-signature") && request.headers.get("x-webhook-event");
   if (!signed) return new Response("Invalid webhook", { status: 401 });
-  const secret = provider === "pey" ? process.env["PEY_WEBHOOK_SECRET"] : process.env["KAPSO_WEBHOOK_SECRET"];
+  const secret = provider === "pey" ? getPeyWebhookSecret() : process.env["KAPSO_WEBHOOK_SECRET"];
   if (!secret) return new Response("Webhook signing is not configured", { status: 503 });
   let raw: string;
   try { raw = await readBoundedBody(request); }

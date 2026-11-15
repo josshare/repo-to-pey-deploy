@@ -2,10 +2,13 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { liveOrderInput } from "./live-orders";
 
-export const getLiveSetup = createServerFn({ method: "GET" }).handler(async () => ({
-  connected: Boolean(process.env["UDC_PEY_API_KEY"] && process.env["LOVABLE_API_KEY"]),
-  webhookConfigured: Boolean(process.env["PEY_WEBHOOK_SECRET"]),
-}));
+export const getLiveSetup = createServerFn({ method: "GET" }).handler(async () => {
+  const { getPeyWebhookSecret } = await import("./webhook-secret.server");
+  return {
+    connected: Boolean(process.env["UDC_PEY_API_KEY"] && process.env["LOVABLE_API_KEY"]),
+    webhookConfigured: Boolean(getPeyWebhookSecret()),
+  };
+});
 
 export const getLiveOrders = createServerFn({ method: "GET" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
   const { data: operator, error } = await context.supabase.from("live_payment_operators").select("enabled, bank_account_id").eq("user_id", context.userId).maybeSingle();
@@ -22,7 +25,8 @@ export const createLiveOrder = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: operator, error: operatorError } = await context.supabase.from("live_payment_operators").select("enabled, bank_account_id").eq("user_id", context.userId).maybeSingle();
     if (operatorError || !operator?.enabled) throw new Error("El dueño y su cuenta receptora todavía no están habilitados.");
-    if (!process.env["PEY_WEBHOOK_SECRET"]) throw new Error("Falta configurar la confirmación firmada de Pey.");
+    const { getPeyWebhookSecret } = await import("./webhook-secret.server");
+    if (!getPeyWebhookSecret()) throw new Error("Falta configurar la confirmación firmada de Pey.");
     if (!process.env["LOVABLE_API_KEY"] || !process.env["UDC_PEY_API_KEY"]) throw new Error("Pey no está conectado.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error: insertError } = await supabaseAdmin.from("live_orders").upsert({

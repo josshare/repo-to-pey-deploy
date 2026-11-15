@@ -29,6 +29,7 @@ Esta tabla muestra **nombres**, nunca valores secretos.
 | `UDC_PEY_API_KEY` | Conexión privada vinculada de Pey |
 | `UDC_KAPSO_API_KEY` | Credencial de conexión Kapso; no hay envío real implementado |
 | `PEY_WEBHOOK_SECRET` | Verificar notificaciones firmadas de Pey |
+| `STRIPE_WEBHOOK_SECRET` | Nombre heredado del secreto que el dueño confirmó que obtuvo de Pey; se usa solo si falta `PEY_WEBHOOK_SECRET`, no integra Stripe |
 | `KAPSO_WEBHOOK_SECRET` | Verificar HMAC de notificaciones Kapso |
 
 Configura secretos con las herramientas de Lovable y los proveedores; nunca uses variables públicas `VITE_*` para estas claves. Tener claves presentes no certifica acceso válido al proveedor: el indicador «conectado» comprueba presencia de configuración, no una operación bancaria exitosa.
