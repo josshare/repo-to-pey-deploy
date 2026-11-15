@@ -39,8 +39,8 @@ Configura secretos con las herramientas de Lovable y los proveedores; nunca uses
 Estado pendiente documentado al preparar esta versión; comprobar de nuevo antes de activar:
 
 - [ ] Crear el usuario del dueño por un procedimiento administrado y seguro. El panel actual permite iniciar sesión, **no registrarse**.
-- [ ] Verificar una cuenta receptora utilizable en Pey.
-- [ ] Habilitar al dueño en `live_payment_operators`, con su identificador de usuario y la cuenta receptora verificada. Esto es una operación administrativa, no algo editable desde el navegador.
+- [x] Cuenta receptora: si el operador no tiene cuenta propia, el QR omite `bankAccountId` y Pey usa la cuenta CoDi vinculada a la API key.
+- [x] Habilitar al dueño en `live_payment_operators` (operación administrativa en la base de datos, nunca desde el navegador ni en el código).
 - [ ] Configurar la firma de Pey y registrar el receptor de notificaciones.
 - [ ] Confirmar que la última versión está publicada en el dominio de la demo.
 - [ ] Ejecutar una sola prueba autorizada de **$0.01 MXN**, con consentimiento marcado, y verificar su resultado en el panel y en Pey.
