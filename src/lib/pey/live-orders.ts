@@ -18,6 +18,7 @@ export const peyPaymentEvent = z.object({
   datePaid: z.number().int().positive().max(8640000000000),
 });
 
-export function qrRequest(concept: string, bankAccountId: string, orderId: string) {
-  return { amount: 0.01, concept, bankAccountId, expiration: 600, generateImage: false, metadata: { orderId } };
+// A null account lets Pey deposit into the CoDi account linked to the API key.
+export function qrRequest(concept: string, bankAccountId: string | null, orderId: string) {
+  return { amount: 0.01, concept, ...(bankAccountId ? { bankAccountId } : {}), expiration: 600, generateImage: false, metadata: { orderId } };
 }
