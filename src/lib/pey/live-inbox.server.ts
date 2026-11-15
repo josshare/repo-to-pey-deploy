@@ -43,7 +43,24 @@ export async function receiveLiveWebhook(request: Request, provider: "pey" | "ka
     console.error("Provider inbox write failed", error.code);
     return new Response("Unable to persist delivery", { status: 503 });
   }
-  // Fail closed during setup: receipt is durable, but business processing is not configured yet.
-  // Never acknowledge this as a successfully processed payment or message.
+  if (provider === "pey" && eventType === "codi.qr.payment_received") {
+    try {
+      const { processPeyPayment } = await import("./live-orders.server");
+      const result = await processPeyPayment(payload);
+      if (["READY", "DUPLICATE", "REVIEW"].includes(result)) {
+        const { error: processedError } = await supabaseAdmin.from("live_provider_events")
+          .update({ processed_at: new Date().toISOString(), processing_error: null })
+          .eq("provider", provider).eq("delivery_id", deliveryId);
+        if (processedError) return new Response("Unable to mark delivery processed", { status: 503 });
+        return new Response("Payment reconciled", { status: 200 });
+      }
+      await supabaseAdmin.from("live_provider_events").update({ processing_error: result })
+        .eq("provider", provider).eq("delivery_id", deliveryId);
+      return new Response("Payment requires reconciliation", { status: 503 });
+    } catch {
+      return new Response("Unable to reconcile payment", { status: 503 });
+    }
+  }
+  // Kapso and unrelated event types remain fail-closed. Demo records are never touched.
   return new Response("Delivery stored; live processing is not activated", { status: 503 });
 }
